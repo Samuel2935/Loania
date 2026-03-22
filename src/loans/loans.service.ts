@@ -1,17 +1,15 @@
-async apply(userId: string, amount: number, duration: number) {
-  // fake income check (replace later)
-  const monthlyIncome = 50000;
+import { Injectable } from "@nestjs/common";
 
-  if (amount > monthlyIncome * 2) {
-    throw new Error('Loan too large');
+@Injectable()
+export class LoansService {
+  async findOverdueLoans() {
+    // Example: fetch loans where dueDate < today and status = 'pending'
+    return this.repo.find({
+      where: { dueDate: LessThan(new Date()), status: 'pending' },
+    });
   }
 
-  const loan = this.repo.create({
-    user_id: userId,
-    amount,
-    duration_months: duration,
-    interest_rate: 0.1,
-  });
-
-  return this.repo.save(loan);
+  async markAsOverdue(loanId: string) {
+    return this.repo.update(loanId, { status: 'overdue' });
+  }
 }

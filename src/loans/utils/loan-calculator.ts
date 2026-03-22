@@ -1,8 +1,6 @@
-@Post('apply')
-apply(@Body() body, @Req() req) {
-  return this.loanService.apply(
-    req.user.id,
-    body.amount,
-    body.duration
-  );
+export function calculateLoan(amount: number, rate: number, duration: number) {
+  const total = amount * (1 + rate);
+  const monthly = total / duration;
+
+  return { total, monthly };
 }
