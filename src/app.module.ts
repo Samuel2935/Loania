@@ -28,3 +28,15 @@ import { Module } from '@nestjs/common';
   ],
 })
 export class AppModule {}
+
+// better option
+
+// import { TypeOrmModule } from '@nestjs/typeorm';
+// import { AppDataSource } from './data-source';
+
+// @Module({
+//   imports: [
+//     TypeOrmModule.forRoot(AppDataSource.options),
+//   ],
+// })
+// export class AppModule {}
