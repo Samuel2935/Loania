@@ -1,26 +1,53 @@
-import { Controller, Post, Req } from '@nestjs/common';
-import { PaymentsService } from './payment.service';
-import type { Request } from 'express';
+import {
+  Controller,
+  Post,
+  Body,
+  Req,
+  Headers,
+  BadRequestException,
+} from '@nestjs/common';
+import { PaymentsService } from './payments.service';
+import * as crypto from 'crypto';
 
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
-  @Post('webhook')
-  handleWebhook(@Req() req: Request) {
-    // 1️⃣ Verify signature
-    const signature = req.headers['x-paystack-signature'];
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const body = req.body;
+  // Initialize payment
+  @Post('initialize')
+  async initialize(@Body() body: any) {
+    return this.paymentsService.initialize(
+      body.amount,
+      body.email,
+    );
+  }
 
-    // Example: simple check (replace with crypto HMAC in production)
-    if (!signature) {
-      throw new Error('Invalid signature');
+  // 🔥 Webhook endpoint
+  @Post('webhook')
+  async handleWebhook(
+    @Req() req: any,
+    @Headers('x-paystack-signature') signature: string,
+  ) {
+    const secret = process.env.PAYSTACK_SECRET;
+
+    // Verify webhook
+    const hash = crypto
+      .createHmac('sha512', secret)
+      .update(JSON.stringify(req.body))
+      .digest('hex');
+
+    if (hash !== signature) {
+      throw new BadRequestException('Invalid signature');
     }
 
-    // 2️⃣ Process the payment asynchronously
-    this.paymentsService.processWebhook(body);
+    const event = req.body;
 
-    return { status: 'ok' };
+    if (event.event === 'charge.success') {
+      const reference = event.data.reference;
+
+      await this.paymentsService.verify(reference);
+    }
+
+    return { received: true };
   }
 }

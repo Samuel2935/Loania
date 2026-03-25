@@ -1,3 +1,10 @@
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+
 @Entity('loans')
 export class Loan {
   @PrimaryGeneratedColumn('uuid')
